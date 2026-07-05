@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { LeadDetailsModal } from "@/components/lead-details-modal";
+import { LeadFormDrawer } from "@/components/lead-form-drawer";
 import { LeadTable } from "@/components/lead-table";
+import { PlusIcon } from "@/components/icons";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 interface PipelineWorkspaceProps {
@@ -54,6 +56,8 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
   const [location, setLocation] = useState("all");
   const [query, setQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [formLead, setFormLead] = useState<Lead | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   const icps = useMemo(
     () => [...new Set(localLeads.map((lead) => lead.icp))].sort(),
@@ -197,18 +201,31 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
           onChange={setLocation}
           options={locations}
         />
-        <button
-          type="button"
-          onClick={() => {
-            setStage("all");
-            setIcp("all");
-            setLocation("all");
-            setQuery("");
-          }}
-          className="h-10 rounded-lg px-3 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-        >
-          Clear filters
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setStage("all");
+              setIcp("all");
+              setLocation("all");
+              setQuery("");
+            }}
+            className="h-10 rounded-lg px-3 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+          >
+            Clear filters
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFormLead(null);
+              setFormOpen(true);
+            }}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/40"
+          >
+            <PlusIcon className="size-4" />
+            Add lead
+          </button>
+        </div>
       </div>
 
       <LeadTable leads={filteredLeads} onSelectLead={setSelectedLead} />
@@ -224,6 +241,32 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
               current.map((lead) => (lead.id === selectedLead.id ? updatedLead : lead)),
             );
             setSelectedLead(updatedLead);
+          }}
+          onEdit={() => {
+            setFormLead(selectedLead);
+            setFormOpen(true);
+          }}
+          onLeadDeleted={() => {
+            setLocalLeads((current) =>
+              current.filter((lead) => lead.id !== selectedLead.id),
+            );
+            setSelectedLead(null);
+          }}
+        />
+      )}
+      {formOpen && (
+        <LeadFormDrawer
+          lead={formLead}
+          onClose={() => setFormOpen(false)}
+          onSaved={(savedLead) => {
+            setLocalLeads((current) => {
+              const exists = current.some((lead) => lead.id === savedLead.id);
+              return exists
+                ? current.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
+                : [savedLead, ...current];
+            });
+            if (selectedLead?.id === savedLead.id) setSelectedLead(savedLead);
+            setFormOpen(false);
           }}
         />
       )}

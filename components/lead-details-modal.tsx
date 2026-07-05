@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { updateLeadFunnelAction } from "@/app/pipeline/actions";
+import { deleteLeadAction, updateLeadFunnelAction } from "@/app/pipeline/actions";
 import { CloseIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/status-badge";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
@@ -22,14 +22,21 @@ export function LeadDetailsModal({
   lead,
   onClose,
   onLeadUpdated,
+  onEdit,
+  onLeadDeleted,
 }: {
   lead: Lead;
   onClose: () => void;
   onLeadUpdated: (lead: Lead) => void;
+  onEdit: () => void;
+  onLeadDeleted: () => void;
 }) {
   const [funnelStage, setFunnelStage] = useState<FunnelStage>(lead.funnel_stage);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -70,15 +77,24 @@ export function LeadDetailsModal({
             </h2>
             <p className="mt-1 text-sm text-muted">{lead.contact_name}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            autoFocus
-            className="shrink-0 rounded-lg p-2 text-muted hover:bg-neutral-100 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
-            aria-label="Close lead details"
-          >
-            <CloseIcon />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-neutral-700 hover:border-emerald-700/40 hover:bg-emerald-50 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              autoFocus
+              className="rounded-lg p-2 text-muted hover:bg-neutral-100 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700"
+              aria-label="Close lead details"
+            >
+              <CloseIcon />
+            </button>
+          </div>
         </header>
 
         <div className="px-5 py-6 sm:px-7">
@@ -210,6 +226,59 @@ export function LeadDetailsModal({
             <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-neutral-700">
               {lead.notes || "No notes recorded."}
             </p>
+          </section>
+
+          <section className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
+            <p className="text-xs text-muted">
+              Deleting removes the lead and its activity history permanently.
+            </p>
+            <div className="flex items-center gap-2">
+              {confirmingDelete && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  if (!confirmingDelete) {
+                    setConfirmingDelete(true);
+                    return;
+                  }
+                  setDeleteError(null);
+                  startDeleteTransition(async () => {
+                    const result = await deleteLeadAction(lead.id);
+                    if (result.error) {
+                      setDeleteError(result.error);
+                      setConfirmingDelete(false);
+                      return;
+                    }
+                    onLeadDeleted();
+                  });
+                }}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/40 disabled:opacity-60 ${
+                  confirmingDelete
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "border border-red-200 text-red-700 hover:bg-red-50"
+                }`}
+              >
+                {isDeleting
+                  ? "Deleting…"
+                  : confirmingDelete
+                    ? "Confirm delete"
+                    : "Delete lead"}
+              </button>
+            </div>
+            {deleteError && (
+              <p role="alert" className="w-full text-xs text-red-700">
+                {deleteError}
+              </p>
+            )}
           </section>
         </div>
       </section>
