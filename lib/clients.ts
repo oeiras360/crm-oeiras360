@@ -13,12 +13,12 @@ type Result<T> = { data: T; warning: string | null };
 
 interface WonLeadRow {
   id: string;
-  Empresa: string;
-  Nome: string;
-  "E-mail": string | null;
-  Telefone: string | null;
-  Site: string | null;
-  Notas: string | null;
+  company_name: string;
+  contact_name: string;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  notes: string | null;
 }
 
 interface DealRow {
@@ -49,12 +49,10 @@ interface PaymentRow {
 export async function getWonClients(): Promise<Result<ClientAccount[]>> {
   const client = getSupabaseServerClient();
   const { data: leads, error: leadsError } = await client
-    .from("leads_import")
-    // The imported column "E-mail" cannot be represented by Supabase's typed
-    // select parser, so select the imported row and narrow it below.
-    .select("*")
-    .eq("Funil", "Closed - Won")
-    .order("Empresa");
+    .from("leads")
+    .select("id, company_name, contact_name, email, phone, website, notes")
+    .eq("funnel_stage", "Closed - Won")
+    .order("company_name");
 
   if (leadsError) return { data: [], warning: leadsError.message };
 
@@ -76,20 +74,20 @@ export async function getWonClients(): Promise<Result<ClientAccount[]>> {
       const leadDeals = dealsByLead.get(lead.id) ?? [];
       return {
         id: lead.id,
-        company_name: lead.Empresa,
-        contact_name: lead.Nome,
-        email: lead["E-mail"],
-        phone: lead.Telefone,
-        website: lead.Site,
-        notes: lead.Notas,
+        company_name: lead.company_name,
+        contact_name: lead.contact_name,
+        email: lead.email,
+        phone: lead.phone,
+        website: lead.website,
+        notes: lead.notes,
         deals: leadDeals.map((deal) => ({
           id: deal.id,
           lead_id: lead.id,
-          company_name: lead.Empresa,
-          contact_name: lead.Nome,
-          email: lead["E-mail"],
-          phone: lead.Telefone,
-          website: lead.Site,
+          company_name: lead.company_name,
+          contact_name: lead.contact_name,
+          email: lead.email,
+          phone: lead.phone,
+          website: lead.website,
           deal_name: deal.deal_name,
           service: deal.service,
           contract_start: deal.contract_start,

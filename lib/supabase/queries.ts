@@ -1,13 +1,7 @@
 import "server-only";
 
 import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  ContactTemplate,
-  FunnelStage,
-  Lead,
-  LeadChannel,
-} from "@/types/crm";
-import { FUNNEL_STAGES } from "@/types/crm";
+import type { ContactTemplate, FunnelStage, Lead } from "@/types/crm";
 
 type QueryResult<T> =
   | { data: T; error: null }
@@ -21,118 +15,32 @@ export interface BattlesheetDocument {
   updated_at: string;
 }
 
-interface ImportedLeadRow {
-  id: string;
-  identity_key: string;
-  Empresa: string;
-  ICP: string;
-  Nome: string;
-  Cargo: string | null;
-  "E-mail": string | null;
-  Fonte: string | null;
-  Funil: string;
-  LinkedIn: string | null;
-  Local: string;
-  Notas: string | null;
-  "Pontuação do lead": string | number | null;
-  Site: string | null;
-  Tags: string | null;
-  Telefone: string | null;
-  "Último contato": string | null;
-  Canal: string | null;
-}
-
-const portugueseMonths: Record<string, string> = {
-  janeiro: "01",
-  fevereiro: "02",
-  março: "03",
-  abril: "04",
-  maio: "05",
-  junho: "06",
-  julho: "07",
-  agosto: "08",
-  setembro: "09",
-  outubro: "10",
-  novembro: "11",
-  dezembro: "12",
-};
-
-function parseNotionDate(value: string | null) {
-  if (!value) return null;
-  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
-
-  const match = value.match(/^(\d{1,2}) de ([^\s]+) de (\d{4})$/i);
-  if (!match) return null;
-
-  const month = portugueseMonths[match[2].toLocaleLowerCase("pt")];
-  return month ? `${match[3]}-${month}-${match[1].padStart(2, "0")}` : null;
-}
-
-function parseScore(value: string | number | null) {
-  if (typeof value === "number") return value;
-  if (!value) return null;
-
-  const parsed = Number(value.replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function mapImportedLead(row: ImportedLeadRow): Lead {
-  const funnelStage = FUNNEL_STAGES.includes(row.Funil as FunnelStage)
-    ? (row.Funil as FunnelStage)
-    : "Lead";
-  const preferredChannel =
-    row.Canal === "Email" || row.Canal === "Telefone" ? (row.Canal as LeadChannel) : null;
-
-  return {
-    id: row.id,
-    company_name: row.Empresa,
-    contact_name: row.Nome,
-    job_title: row.Cargo,
-    email: row["E-mail"],
-    phone: row.Telefone,
-    website: row.Site,
-    linkedin_url: row.LinkedIn,
-    source: row.Fonte,
-    funnel_stage: funnelStage,
-    icp: row.ICP,
-    location: row.Local,
-    notes: row.Notas,
-    lead_score: parseScore(row["Pontuação do lead"]),
-    tags: row.Tags?.split(",").map((tag) => tag.trim()).filter(Boolean) ?? [],
-    last_contacted_at: parseNotionDate(row["Último contato"]),
-    preferred_channel: preferredChannel,
-    // The import table does not expose these timestamps.
-    created_at: "",
-    updated_at: "",
-  };
-}
-
 export async function getLeads(): Promise<QueryResult<Lead[]>> {
   const { data, error } = await getSupabaseServerClient()
-    .from("leads_import")
+    .from("leads")
     .select("*")
-    .order("Pontuação do lead", { ascending: false });
+    .order("lead_score", { ascending: false, nullsFirst: false })
+    .order("company_name");
 
   if (error) return { data: null, error: error.message };
-  return { data: (data as ImportedLeadRow[]).map(mapImportedLead), error: null };
+  return { data: data as Lead[], error: null };
 }
 
 export async function updateLeadFunnel(
   leadId: string,
   funnelStage: FunnelStage,
 ): Promise<QueryResult<Lead>> {
-  const client = getSupabaseAdminClient();
-  const { data: updatedRows, error: updateError } = await client
-    .from("leads_import")
-    .update({ Funil: funnelStage })
+  const { data: updated, error } = await getSupabaseAdminClient()
+    .from("leads")
+    .update({ funnel_stage: funnelStage })
     .eq("id", leadId)
     .select("*")
     .maybeSingle();
 
-  if (updateError) return { data: null, error: updateError.message };
-  if (!updatedRows) return { data: null, error: "Lead no longer exists." };
+  if (error) return { data: null, error: error.message };
+  if (!updated) return { data: null, error: "Lead no longer exists." };
 
-  return { data: mapImportedLead(updatedRows as ImportedLeadRow), error: null };
+  return { data: updated as Lead, error: null };
 }
 
 export async function getContactTemplates(): Promise<QueryResult<ContactTemplate[]>> {

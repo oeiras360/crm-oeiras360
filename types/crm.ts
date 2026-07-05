@@ -12,8 +12,30 @@ export type FunnelStage = (typeof FUNNEL_STAGES)[number];
 export type LeadChannel = "Email" | "Telefone";
 export type ContactChannel = "email" | "linkedin";
 
+export const ACTIVITY_TYPES = [
+  "note",
+  "email",
+  "call",
+  "linkedin",
+  "meeting",
+  "stage_change",
+] as const;
+
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
+export interface LeadActivity {
+  id: string;
+  lead_id: string;
+  type: ActivityType;
+  body: string | null;
+  metadata: Record<string, string>;
+  occurred_at: string;
+  created_at: string;
+}
+
 export interface Lead {
   id: string;
+  identity_key: string | null;
   company_name: string;
   contact_name: string;
   job_title: string | null;
@@ -30,6 +52,8 @@ export interface Lead {
   tags: string[];
   last_contacted_at: string | null;
   preferred_channel: LeadChannel | null;
+  next_action_at: string | null;
+  next_action_note: string | null;
   created_at: string;
   updated_at: string;
 }
