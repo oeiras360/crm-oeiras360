@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
 import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ContactTemplate,
@@ -23,6 +22,8 @@ export interface BattlesheetDocument {
 }
 
 interface ImportedLeadRow {
+  id: string;
+  identity_key: string;
   Empresa: string;
   ICP: string;
   Nome: string;
@@ -75,8 +76,7 @@ function parseScore(value: string | number | null) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function mapImportedLead(row: ImportedLeadRow, index: number): Lead {
-  const identity = [row.Empresa, row["E-mail"], row.Telefone, row.Nome, index].join("|");
+function mapImportedLead(row: ImportedLeadRow): Lead {
   const funnelStage = FUNNEL_STAGES.includes(row.Funil as FunnelStage)
     ? (row.Funil as FunnelStage)
     : "Lead";
@@ -84,8 +84,7 @@ function mapImportedLead(row: ImportedLeadRow, index: number): Lead {
     row.Canal === "Email" || row.Canal === "Telefone" ? (row.Canal as LeadChannel) : null;
 
   return {
-    // leads_import has no primary key; this stable ID is for rendering only.
-    id: createHash("sha256").update(identity).digest("hex").slice(0, 24),
+    id: row.id,
     company_name: row.Empresa,
     contact_name: row.Nome,
     job_title: row.Cargo,
@@ -116,6 +115,24 @@ export async function getLeads(): Promise<QueryResult<Lead[]>> {
 
   if (error) return { data: null, error: error.message };
   return { data: (data as ImportedLeadRow[]).map(mapImportedLead), error: null };
+}
+
+export async function updateLeadFunnel(
+  leadId: string,
+  funnelStage: FunnelStage,
+): Promise<QueryResult<Lead>> {
+  const client = getSupabaseAdminClient();
+  const { data: updatedRows, error: updateError } = await client
+    .from("leads_import")
+    .update({ Funil: funnelStage })
+    .eq("id", leadId)
+    .select("*")
+    .maybeSingle();
+
+  if (updateError) return { data: null, error: updateError.message };
+  if (!updatedRows) return { data: null, error: "Lead no longer exists." };
+
+  return { data: mapImportedLead(updatedRows as ImportedLeadRow), error: null };
 }
 
 export async function getContactTemplates(): Promise<QueryResult<ContactTemplate[]>> {

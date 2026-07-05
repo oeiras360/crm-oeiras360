@@ -1,17 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { updateLeadFunnelAction } from "@/app/pipeline/actions";
 import { CloseIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/status-badge";
-import type { Lead } from "@/types/crm";
+import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
+
+const funnelControlStyles: Record<FunnelStage, string> = {
+  Lead: "border-blue-200 bg-blue-50/70 text-blue-800 hover:border-blue-400",
+  Contacted: "border-amber-200 bg-amber-50/70 text-amber-900 hover:border-amber-400",
+  Engaged: "border-violet-200 bg-violet-50/70 text-violet-800 hover:border-violet-400",
+  Negotiation: "border-fuchsia-200 bg-fuchsia-50/70 text-fuchsia-800 hover:border-fuchsia-400",
+  "Closed - Won":
+    "border-emerald-200 bg-emerald-50/70 text-emerald-800 hover:border-emerald-400",
+  "Closed - On Hold":
+    "border-neutral-200 bg-neutral-50 text-neutral-800 hover:border-neutral-400",
+  "Closed - Lost": "border-red-200 bg-red-50/70 text-red-800 hover:border-red-400",
+};
 
 export function LeadDetailsModal({
   lead,
   onClose,
+  onLeadUpdated,
 }: {
   lead: Lead;
   onClose: () => void;
+  onLeadUpdated: (lead: Lead) => void;
 }) {
+  const [funnelStage, setFunnelStage] = useState<FunnelStage>(lead.funnel_stage);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -71,9 +90,59 @@ export function LeadDetailsModal({
               Sales
             </h3>
             <dl className="mt-3 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-              <Detail label="Funil">
-                <StatusBadge status={lead.funnel_stage} />
-              </Detail>
+              <div className="sm:col-span-2">
+                <dt className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-700">
+                  Funil
+                  <span className="normal-case tracking-normal text-muted">Click to change stage</span>
+                </dt>
+                <dd className="flex items-center gap-3">
+                  <div className="group relative w-full sm:max-w-sm">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute left-4 top-1/2 size-2.5 -translate-y-1/2 rounded-full bg-current opacity-70"
+                    />
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm transition-transform group-hover:-translate-y-1"
+                    >
+                      ▾
+                    </span>
+                  <select
+                    aria-label="Funil"
+                    value={funnelStage}
+                    disabled={isPending}
+                    onChange={(event) => {
+                      const nextStage = event.target.value as FunnelStage;
+                      const previousStage = funnelStage;
+                      setFunnelStage(nextStage);
+                      setError(null);
+                      startTransition(async () => {
+                        const result = await updateLeadFunnelAction(lead.id, nextStage);
+                        if (!result.data) {
+                          setFunnelStage(previousStage);
+                          setError(result.error);
+                          return;
+                        }
+                        onLeadUpdated(result.data);
+                      });
+                    }}
+                      className={`h-12 w-full cursor-pointer appearance-none rounded-xl border-2 py-0 pl-10 pr-11 text-sm font-semibold shadow-sm outline-none transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-4 focus-visible:ring-emerald-700/15 disabled:cursor-wait disabled:translate-y-0 disabled:opacity-60 ${funnelControlStyles[funnelStage]}`}
+                  >
+                    {FUNNEL_STAGES.map((stage) => (
+                      <option key={stage} value={stage}>
+                        {stage}
+                      </option>
+                    ))}
+                  </select>
+                  </div>
+                  {isPending && <span className="text-xs text-muted">Saving…</span>}
+                </dd>
+                {error && (
+                  <p role="alert" className="mt-2 text-xs text-red-700">
+                    {error}
+                  </p>
+                )}
+              </div>
               <Detail label="Pontuação do lead">
                 {lead.lead_score?.toLocaleString("pt-PT") ?? "—"}
               </Detail>

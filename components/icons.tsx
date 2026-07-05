@@ -82,3 +82,39 @@ export function EyeIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function ClientsIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path d="M7 20v-2.2c0-2 1.8-3.8 4-3.8h2c2.2 0 4 1.8 4 3.8V20" />
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M17 8.5a3 3 0 0 1 2.5 3v1.7M7 8.5a3 3 0 0 0-2.5 3v1.7" />
+    </svg>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M8 3v4M16 3v4M3 10h18" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path d="M5 12h14M14 7l5 5-5 5" />
+    </svg>
+  );
+}
+
+export function FinanceIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+      <path d="m4 7 6-4 6 7 5-4" />
+    </svg>
+  );
+}

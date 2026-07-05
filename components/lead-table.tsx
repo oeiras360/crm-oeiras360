@@ -66,7 +66,7 @@ export function LeadTable({
                   onClick={() => onSelectLead(lead)}
                   className="cursor-pointer align-top transition-colors hover:bg-neutral-50/70"
                 >
-                  <td className="max-w-[280px] px-5 py-4">
+                  <td className="max-w-[320px] px-5 py-4">
                     <button
                       type="button"
                       onClick={() => onSelectLead(lead)}
@@ -76,9 +76,32 @@ export function LeadTable({
                       {lead.company_name}
                     </button>
                     <p className="mt-1 truncate text-xs text-neutral-600">{lead.contact_name}</p>
-                    <p className="mt-1 truncate text-xs text-muted">
-                      {lead.email ?? lead.phone ?? lead.website ?? "No contact details"}
-                    </p>
+                    <div className="mt-2 flex flex-col gap-1 text-xs">
+                      {lead.email ? (
+                        <a
+                          href={`mailto:${lead.email}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className="w-fit max-w-full truncate text-emerald-700 underline decoration-emerald-700/20 underline-offset-2 hover:decoration-emerald-700"
+                          title={lead.email}
+                        >
+                          <span aria-hidden>✉</span> {lead.email}
+                        </a>
+                      ) : (
+                        <span className="text-neutral-400">✉ No email</span>
+                      )}
+                      {lead.phone ? (
+                        <a
+                          href={`tel:${lead.phone}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className="w-fit max-w-full truncate font-medium text-neutral-700 underline decoration-neutral-400/30 underline-offset-2 hover:text-emerald-700 hover:decoration-emerald-700"
+                          title={lead.phone}
+                        >
+                          <span aria-hidden>☎</span> {lead.phone}
+                        </a>
+                      ) : (
+                        <span className="text-neutral-400">☎ No phone</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-4">
                     <StatusBadge status={lead.funnel_stage} />

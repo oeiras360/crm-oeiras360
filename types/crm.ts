@@ -56,3 +56,54 @@ export interface BattlesheetSection {
   created_at: string;
   updated_at: string;
 }
+
+export type BillingCadence =
+  | "one_time"
+  | "monthly"
+  | "bimonthly"
+  | "quarterly"
+  | "annually";
+export type ClientStatus = "active" | "ending_soon" | "completed";
+export type PaymentStatus = "scheduled" | "paid" | "overdue";
+
+export interface ClientDeal {
+  id: string;
+  lead_id: string;
+  company_name: string;
+  contact_name: string;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  deal_name: string | null;
+  service: string | null;
+  contract_start: string | null;
+  contract_end: string | null;
+  amount_cents: number | null;
+  currency: string;
+  billing_cadence: BillingCadence | null;
+  next_payment_at: string | null;
+  status: ClientStatus;
+  notes: string | null;
+}
+
+export interface ClientAccount {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  notes: string | null;
+  deals: ClientDeal[];
+}
+
+export interface PaymentEvent {
+  id: string;
+  client_deal_id: string;
+  company_name: string;
+  due_date: string;
+  amount_cents: number;
+  currency: string;
+  status: PaymentStatus;
+  label: string;
+}

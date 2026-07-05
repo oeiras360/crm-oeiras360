@@ -3,30 +3,71 @@
 import { useMemo, useState } from "react";
 import { LeadDetailsModal } from "@/components/lead-details-modal";
 import { LeadTable } from "@/components/lead-table";
-import { StatusBadge } from "@/components/status-badge";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 interface PipelineWorkspaceProps {
   leads: Lead[];
 }
 
+const stageStyles: Record<FunnelStage, { dot: string; active: string; hover: string }> = {
+  Lead: {
+    dot: "bg-blue-500",
+    active: "border-blue-300 bg-blue-50 text-blue-950 ring-blue-500/15",
+    hover: "hover:border-blue-200 hover:bg-blue-50/70",
+  },
+  Contacted: {
+    dot: "bg-amber-500",
+    active: "border-amber-300 bg-amber-50 text-amber-950 ring-amber-500/15",
+    hover: "hover:border-amber-200 hover:bg-amber-50/70",
+  },
+  Engaged: {
+    dot: "bg-violet-500",
+    active: "border-violet-300 bg-violet-50 text-violet-950 ring-violet-500/15",
+    hover: "hover:border-violet-200 hover:bg-violet-50/70",
+  },
+  Negotiation: {
+    dot: "bg-fuchsia-500",
+    active: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-950 ring-fuchsia-500/15",
+    hover: "hover:border-fuchsia-200 hover:bg-fuchsia-50/70",
+  },
+  "Closed - Won": {
+    dot: "bg-emerald-600",
+    active: "border-emerald-300 bg-emerald-50 text-emerald-950 ring-emerald-500/15",
+    hover: "hover:border-emerald-200 hover:bg-emerald-50/70",
+  },
+  "Closed - On Hold": {
+    dot: "bg-neutral-500",
+    active: "border-neutral-400 bg-neutral-100 text-neutral-950 ring-neutral-500/15",
+    hover: "hover:border-neutral-300 hover:bg-neutral-100/80",
+  },
+  "Closed - Lost": {
+    dot: "bg-red-500",
+    active: "border-red-300 bg-red-50 text-red-950 ring-red-500/15",
+    hover: "hover:border-red-200 hover:bg-red-50/70",
+  },
+};
+
 export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
+  const [localLeads, setLocalLeads] = useState(leads);
   const [stage, setStage] = useState<FunnelStage | "all">("all");
   const [icp, setIcp] = useState("all");
   const [location, setLocation] = useState("all");
   const [query, setQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  const icps = useMemo(() => [...new Set(leads.map((lead) => lead.icp))].sort(), [leads]);
+  const icps = useMemo(
+    () => [...new Set(localLeads.map((lead) => lead.icp))].sort(),
+    [localLeads],
+  );
   const locations = useMemo(
-    () => [...new Set(leads.map((lead) => lead.location))].sort(),
-    [leads],
+    () => [...new Set(localLeads.map((lead) => lead.location))].sort(),
+    [localLeads],
   );
 
   const filteredLeads = useMemo(() => {
     const search = query.trim().toLocaleLowerCase("pt");
 
-    return leads.filter((lead) => {
+    return localLeads.filter((lead) => {
       const searchable = [
         lead.company_name,
         lead.contact_name,
@@ -46,39 +87,96 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
         (!search || searchable.includes(search))
       );
     });
-  }, [icp, leads, location, query, stage]);
+  }, [icp, localLeads, location, query, stage]);
 
   return (
     <>
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-        <button
-          type="button"
-          onClick={() => setStage("all")}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ring-inset ${
-            stage === "all"
-              ? "bg-neutral-900 text-white ring-neutral-900"
-              : "bg-white text-neutral-600 ring-border"
-          }`}
-        >
-          All · {leads.length}
-        </button>
-        {FUNNEL_STAGES.map((item) => {
-          const count = leads.filter((lead) => lead.funnel_stage === item).length;
-          if (count === 0) return null;
-
-          return (
+      <div className="mb-4 rounded-xl border border-border bg-surface p-3 shadow-sm sm:p-4">
+        <div className="mb-3 flex items-center justify-between gap-4 px-0.5">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Pipeline stages</p>
+            <p className="mt-0.5 text-xs text-muted">Select a stage to focus the lead list</p>
+          </div>
+          {stage !== "all" && (
             <button
-              key={item}
               type="button"
-              onClick={() => setStage(stage === item ? "all" : item)}
-              className={`shrink-0 rounded-full p-0.5 ${stage === item ? "ring-2 ring-neutral-900 ring-offset-1" : ""}`}
-              aria-pressed={stage === item}
+              onClick={() => setStage("all")}
+              className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50 hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30"
             >
-              <StatusBadge status={item} />
-              <span className="ml-1.5 pr-2 text-xs font-semibold text-neutral-500">{count}</span>
+              Show all
             </button>
-          );
-        })}
+          )}
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setStage("all")}
+            aria-pressed={stage === "all"}
+            className={`group relative min-w-28 shrink-0 overflow-hidden rounded-lg border px-3 py-2.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30 ${
+              stage === "all"
+                ? "border-neutral-800 bg-neutral-900 text-white shadow-md ring-4 ring-neutral-900/10"
+                : "border-border bg-white text-neutral-700 hover:-translate-y-0.5 hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-md"
+            }`}
+          >
+            <span className="flex items-center justify-between gap-4">
+              <span className="text-xs font-medium">All leads</span>
+              <span
+                aria-hidden
+                className={`text-sm transition-transform duration-200 group-hover:translate-x-0.5 ${
+                  stage === "all" ? "text-white/70" : "text-neutral-300"
+                }`}
+              >
+                →
+              </span>
+            </span>
+            <span className="mt-1 block text-lg font-semibold leading-none">{localLeads.length}</span>
+          </button>
+
+          {FUNNEL_STAGES.map((item) => {
+            const count = localLeads.filter((lead) => lead.funnel_stage === item).length;
+            if (count === 0) return null;
+            const isActive = stage === item;
+            const styles = stageStyles[item];
+
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setStage(isActive ? "all" : item)}
+                aria-pressed={isActive}
+                title={isActive ? `Remove ${item} filter` : `Show ${count} ${item} leads`}
+                className={`group relative min-w-36 shrink-0 overflow-hidden rounded-lg border px-3 py-2.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/30 ${
+                  isActive
+                    ? `${styles.active} shadow-md ring-4`
+                    : `border-border bg-white text-neutral-700 hover:-translate-y-0.5 hover:shadow-md ${styles.hover}`
+                }`}
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      aria-hidden
+                      className={`size-2 shrink-0 rounded-full ${styles.dot} transition-transform duration-200 group-hover:scale-125`}
+                    />
+                    <span className="truncate text-xs font-medium">{item}</span>
+                  </span>
+                  <span
+                    aria-hidden
+                    className={`text-sm transition-all duration-200 group-hover:translate-x-0.5 ${
+                      isActive ? "opacity-70" : "text-neutral-300 group-hover:text-neutral-500"
+                    }`}
+                  >
+                    {isActive ? "✓" : "→"}
+                  </span>
+                </span>
+                <span className="mt-1 block text-lg font-semibold leading-none">{count}</span>
+                <span className="mt-1 block text-[10px] text-current opacity-55">
+                  {Math.round((count / localLeads.length) * 100)}% of pipeline
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="mb-4 grid gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(260px,1fr)_220px_260px_auto]">
@@ -115,10 +213,19 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
 
       <LeadTable leads={filteredLeads} onSelectLead={setSelectedLead} />
       <p className="mt-3 text-xs text-muted">
-        Showing {filteredLeads.length} of {leads.length} leads · Funil follows the Notion export
+        Showing {filteredLeads.length} of {localLeads.length} leads · changes save to Supabase
       </p>
       {selectedLead && (
-        <LeadDetailsModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
+        <LeadDetailsModal
+          lead={selectedLead}
+          onClose={() => setSelectedLead(null)}
+          onLeadUpdated={(updatedLead) => {
+            setLocalLeads((current) =>
+              current.map((lead) => (lead.id === selectedLead.id ? updatedLead : lead)),
+            );
+            setSelectedLead(updatedLead);
+          }}
+        />
       )}
     </>
   );
