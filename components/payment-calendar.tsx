@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/client-format";
+import { PaymentChip } from "@/components/payment-chip";
 import type { PaymentEvent } from "@/types/crm";
 
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -67,19 +67,7 @@ export function PaymentCalendar({ events }: { events: PaymentEvent[] }) {
                   </span>
                   <div className="mt-1.5 space-y-1">
                     {dayEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className={`overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-[10px] leading-tight ${
-                          event.status === "paid"
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                            : event.status === "overdue"
-                              ? "border-rose-500 bg-rose-50 text-rose-800"
-                              : "border-blue-500 bg-blue-50 text-blue-800"
-                        }`}
-                      >
-                        <p className="truncate font-semibold">{event.company_name}</p>
-                        <p className="mt-0.5 truncate">{formatMoney(event.amount_cents, event.currency)}</p>
-                      </div>
+                      <PaymentChip key={event.id} event={event} />
                     ))}
                   </div>
                 </>

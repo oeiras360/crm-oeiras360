@@ -11,6 +11,20 @@ import type {
 
 type Result<T> = { data: T; warning: string | null };
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Status is derived from the contract end date at read time so it never goes
+// stale: completed once the contract is over, ending_soon in the last 30 days.
+export function deriveDealStatus(contractEnd: string | null): ClientStatus {
+  if (!contractEnd) return "active";
+  const today = todayISO();
+  if (contractEnd < today) return "completed";
+  const soonCutoff = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+  return contractEnd <= soonCutoff ? "ending_soon" : "active";
+}
+
 interface WonLeadRow {
   id: string;
   company_name: string;
@@ -96,7 +110,7 @@ export async function getWonClients(): Promise<Result<ClientAccount[]>> {
           currency: deal.currency,
           billing_cadence: deal.billing_cadence,
           next_payment_at: deal.next_payment_at,
-          status: deal.status,
+          status: deal.contract_end ? deriveDealStatus(deal.contract_end) : deal.status,
           notes: deal.notes,
         })),
       };
@@ -121,9 +135,16 @@ export async function getPaymentEvents(): Promise<Result<PaymentEvent[]>> {
   if (error) return { data: [], warning: error.message };
   const clientNames = new Map(configuredDeals.map((deal) => [deal.id, deal.company_name]));
 
+  const today = todayISO();
   return {
+    // Scheduled charges past their due date display as overdue without any
+    // background job flipping rows.
     data: ((data ?? []) as PaymentRow[]).map((event) => ({
       ...event,
+      status:
+        event.status === "scheduled" && event.due_date < today
+          ? ("overdue" as PaymentStatus)
+          : event.status,
       company_name: clientNames.get(event.client_deal_id) ?? "Client",
     })),
     warning: clients.warning,

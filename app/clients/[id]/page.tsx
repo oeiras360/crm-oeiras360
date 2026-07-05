@@ -3,18 +3,31 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { DealForm } from "@/components/deal-form";
+import { DealPayments } from "@/components/deal-payments";
+import { DeleteDealButton } from "@/components/delete-deal-button";
 import { cadenceLabel, contractProgress, formatDate, formatMoney } from "@/lib/client-format";
-import { getWonClient } from "@/lib/clients";
+import { getPaymentEvents, getWonClient } from "@/lib/clients";
+import type { PaymentEvent } from "@/types/crm";
 
 export const metadata: Metadata = { title: "Client details" };
 
 export default async function ClientDetailsPage({ params }: PageProps<"/clients/[id]">) {
   await connection();
   const { id } = await params;
-  const result = await getWonClient(id);
+  const [result, paymentsResult] = await Promise.all([
+    getWonClient(id),
+    getPaymentEvents(),
+  ]);
   if (!result.data) notFound();
 
   const client = result.data;
+  const paymentsByDeal = new Map<string, PaymentEvent[]>();
+  for (const payment of paymentsResult.data) {
+    paymentsByDeal.set(payment.client_deal_id, [
+      ...(paymentsByDeal.get(payment.client_deal_id) ?? []),
+      payment,
+    ]);
+  }
   const configured = client.deals.some((deal) => deal.contract_start);
   const nextDeal = client.deals
     .filter((deal) => deal.next_payment_at)
@@ -54,7 +67,11 @@ export default async function ClientDetailsPage({ params }: PageProps<"/clients/
         <div className="space-y-5">
           {client.deals.map((deal, index) => (
             <div key={deal.id} className="space-y-5">
-              <ContractSummary deal={deal} number={index + 1} />
+              <ContractSummary
+                deal={deal}
+                number={index + 1}
+                payments={paymentsByDeal.get(deal.id) ?? []}
+              />
               <DealForm client={client} deal={deal} />
             </div>
           ))}
@@ -99,16 +116,21 @@ export default async function ClientDetailsPage({ params }: PageProps<"/clients/
 function ContractSummary({
   deal,
   number,
+  payments,
 }: {
   deal: NonNullable<Awaited<ReturnType<typeof getWonClient>>["data"]>["deals"][number];
   number: number;
+  payments: PaymentEvent[];
 }) {
   const progress = contractProgress(deal.contract_start, deal.contract_end);
   return (
     <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-        Contract {number}
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+          Contract {number}
+        </p>
+        <DeleteDealButton dealId={deal.id} />
+      </div>
       <h2 className="mt-2 text-xl font-semibold">{deal.deal_name ?? deal.service ?? "Contract not set up"}</h2>
       <p className="mt-1 text-sm text-muted">{deal.service ?? "Service not set"}</p>
       <dl className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -125,6 +147,12 @@ function ContractSummary({
         <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
           <div className="h-full rounded-full bg-emerald-600" style={{ width: `${progress ?? 0}%` }} />
         </div>
+      </div>
+      <div className="mt-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+          Payments
+        </p>
+        <DealPayments payments={payments} />
       </div>
     </section>
   );

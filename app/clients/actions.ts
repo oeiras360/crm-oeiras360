@@ -110,6 +110,56 @@ export async function saveClientDeal(
   redirect(`/clients/${leadId}`);
 }
 
+export async function markPaymentPaidAction(
+  eventId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await getSupabaseAdminClient()
+    .from("payment_events")
+    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .eq("id", eventId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/clients");
+  revalidatePath("/clients/calendar");
+  revalidatePath("/finance");
+  revalidatePath("/crm");
+  return { error: null };
+}
+
+export async function markPaymentScheduledAction(
+  eventId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await getSupabaseAdminClient()
+    .from("payment_events")
+    .update({ status: "scheduled", paid_at: null })
+    .eq("id", eventId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/clients");
+  revalidatePath("/clients/calendar");
+  revalidatePath("/finance");
+  revalidatePath("/crm");
+  return { error: null };
+}
+
+export async function deleteDealAction(
+  dealId: string,
+): Promise<{ error: string | null }> {
+  // payment_events cascades on deal delete.
+  const { error } = await getSupabaseAdminClient()
+    .from("client_deals")
+    .delete()
+    .eq("id", dealId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/clients");
+  revalidatePath("/clients/calendar");
+  revalidatePath("/finance");
+  return { error: null };
+}
+
 function buildDueDates(start: string, end: string, cadence: BillingCadence) {
   const dates: string[] = [];
   const current = new Date(`${start}T12:00:00Z`);

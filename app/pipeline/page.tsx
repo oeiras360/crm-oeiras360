@@ -7,9 +7,16 @@ import { getLeads } from "@/lib/supabase/queries";
 
 export const metadata: Metadata = { title: "Pipeline" };
 
-export default async function PipelinePage() {
+export default async function PipelinePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lead?: string }>;
+}) {
   await connection();
-  const result = await getLeads();
+  const [result, { lead: initialLeadId }] = await Promise.all([
+    getLeads(),
+    searchParams,
+  ]);
 
   return (
     <>
@@ -19,7 +26,7 @@ export default async function PipelinePage() {
         description="Move leads through the pipeline and keep the next sales action visible."
       />
       {result.data ? (
-        <PipelineWorkspace leads={result.data} />
+        <PipelineWorkspace leads={result.data} initialLeadId={initialLeadId ?? null} />
       ) : (
         <DataError title="Could not load the pipeline" message={result.error} />
       )}

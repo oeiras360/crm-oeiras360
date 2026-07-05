@@ -11,13 +11,14 @@ import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 interface PipelineWorkspaceProps {
   leads: Lead[];
+  initialLeadId?: string | null;
 }
 
 type PipelineView = "table" | "board";
 
 const VIEW_STORAGE_KEY = "pipeline-view";
 
-export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
+export function PipelineWorkspace({ leads, initialLeadId }: PipelineWorkspaceProps) {
   const [localLeads, setLocalLeads] = useState(leads);
   const [stage, setStage] = useState<FunnelStage | "all">("all");
   const [view, setView] = useState<PipelineView>("table");
@@ -37,7 +38,9 @@ export function PipelineWorkspace({ leads }: PipelineWorkspaceProps) {
   const [icp, setIcp] = useState("all");
   const [location, setLocation] = useState("all");
   const [query, setQuery] = useState("");
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(
+    initialLeadId ? leads.find((lead) => lead.id === initialLeadId) ?? null : null,
+  );
   const [formLead, setFormLead] = useState<Lead | null>(null);
   const [formOpen, setFormOpen] = useState(false);
 
