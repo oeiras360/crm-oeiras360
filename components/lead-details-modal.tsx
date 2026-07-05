@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { deleteLeadAction, updateLeadFunnelAction } from "@/app/pipeline/actions";
+import { ActivitySection, NextActionSection } from "@/components/lead-activity";
 import { CloseIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/status-badge";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
@@ -185,6 +186,10 @@ export function LeadDetailsModal({
               <Detail label="Local">{lead.location}</Detail>
             </dl>
           </section>
+
+          <NextActionSection lead={lead} onLeadUpdated={onLeadUpdated} />
+
+          <ActivitySection lead={lead} />
 
           <section aria-labelledby="contact-details-title" className="mt-8 border-t border-border pt-6">
             <h3

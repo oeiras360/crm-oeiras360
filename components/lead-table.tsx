@@ -1,6 +1,7 @@
 "use client";
 
 import { EyeIcon } from "@/components/icons";
+import { isOverdue } from "@/components/lead-activity";
 import { StatusBadge } from "@/components/status-badge";
 import type { Lead } from "@/types/crm";
 
@@ -106,10 +107,29 @@ export function LeadTable({
                   <td className="px-4 py-4">
                     <StatusBadge status={lead.funnel_stage} />
                   </td>
-                  <td className="px-4 py-4">
-                    <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${action.style}`}>
-                      {action.label}
-                    </span>
+                  <td className="max-w-[220px] px-4 py-4">
+                    {lead.next_action_at ? (
+                      <span
+                        className={`inline-flex max-w-full items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ${
+                          isOverdue(lead)
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-emerald-50 text-emerald-800"
+                        }`}
+                        title={lead.next_action_note ?? undefined}
+                      >
+                        {isOverdue(lead) && (
+                          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-amber-500" />
+                        )}
+                        <span className="truncate">
+                          {formatDate(lead.next_action_at)}
+                          {lead.next_action_note ? ` · ${lead.next_action_note}` : ""}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${action.style}`}>
+                        {action.label}
+                      </span>
+                    )}
                   </td>
                   <td className={`px-4 py-4 ${lead.last_contacted_at ? "text-neutral-600" : "font-medium text-amber-700"}`}>
                     {formatDate(lead.last_contacted_at)}

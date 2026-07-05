@@ -1,10 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getLeadActivities, logActivity } from "@/lib/activities";
 import { computeIdentityKey } from "@/lib/leads";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { updateLeadFunnel } from "@/lib/supabase/queries";
-import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
+import {
+  ACTIVITY_TYPES,
+  FUNNEL_STAGES,
+  type ActivityType,
+  type FunnelStage,
+  type Lead,
+  type LeadActivity,
+} from "@/types/crm";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -121,6 +129,69 @@ export async function saveLeadAction(
   revalidatePath("/pipeline");
   revalidatePath("/crm");
   return { error: null, lead: lead as Lead };
+}
+
+export async function getLeadActivitiesAction(
+  leadId: string,
+): Promise<{ data: LeadActivity[] | null; error: string | null }> {
+  if (!UUID_PATTERN.test(leadId)) {
+    return { data: null, error: "Invalid lead identifier." };
+  }
+  return getLeadActivities(leadId);
+}
+
+export async function logActivityAction(
+  leadId: string,
+  type: string,
+  body: string,
+): Promise<{ data: LeadActivity | null; error: string | null }> {
+  if (!UUID_PATTERN.test(leadId)) {
+    return { data: null, error: "Invalid lead identifier." };
+  }
+  if (!ACTIVITY_TYPES.includes(type as ActivityType) || type === "stage_change") {
+    return { data: null, error: "Invalid activity type." };
+  }
+  const trimmed = body.trim();
+  if (!trimmed) {
+    return { data: null, error: "Write a short note about what happened." };
+  }
+
+  const result = await logActivity(leadId, type as ActivityType, trimmed);
+  if (!result.data) return result;
+
+  revalidatePath("/pipeline");
+  revalidatePath("/crm");
+  return result;
+}
+
+export async function setNextActionAction(
+  leadId: string,
+  nextActionAt: string,
+  note: string,
+): Promise<{ data: Lead | null; error: string | null }> {
+  if (!UUID_PATTERN.test(leadId)) {
+    return { data: null, error: "Invalid lead identifier." };
+  }
+  if (nextActionAt && !/^\d{4}-\d{2}-\d{2}$/.test(nextActionAt)) {
+    return { data: null, error: "Invalid date." };
+  }
+
+  const { data, error } = await getSupabaseAdminClient()
+    .from("leads")
+    .update({
+      next_action_at: nextActionAt || null,
+      next_action_note: note.trim() || null,
+    })
+    .eq("id", leadId)
+    .select("*")
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) return { data: null, error: "Lead no longer exists." };
+
+  revalidatePath("/pipeline");
+  revalidatePath("/crm");
+  return { data: data as Lead, error: null };
 }
 
 export async function deleteLeadAction(
