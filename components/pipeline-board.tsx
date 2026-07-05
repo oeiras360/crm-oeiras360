@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { updateLeadFunnelAction } from "@/app/pipeline/actions";
 import { isOverdue } from "@/components/lead-activity";
 import { stageStyles } from "@/components/stage-styles";
+import { useToast } from "@/components/toast";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 export function PipelineBoard({
@@ -19,6 +20,7 @@ export function PipelineBoard({
   const [dropStage, setDropStage] = useState<FunnelStage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const { showToast } = useToast();
 
   function handleDrop(stage: FunnelStage) {
     const lead = leads.find((item) => item.id === draggingId);
@@ -35,9 +37,15 @@ export function PipelineBoard({
       if (!result.data) {
         onLeadUpdated(previous);
         setError(result.error);
+        showToast(`Could not move ${lead.company_name}`, "error");
         return;
       }
       onLeadUpdated(result.data);
+      showToast(
+        stage === "Closed - Won"
+          ? `${lead.company_name} won 🎉 — client account created`
+          : `${lead.company_name} moved to ${stage}`,
+      );
     });
   }
 

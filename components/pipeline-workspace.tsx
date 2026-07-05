@@ -7,6 +7,7 @@ import { LeadTable } from "@/components/lead-table";
 import { PipelineBoard } from "@/components/pipeline-board";
 import { PlusIcon } from "@/components/icons";
 import { stageStyles } from "@/components/stage-styles";
+import { useToast } from "@/components/toast";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 interface PipelineWorkspaceProps {
@@ -43,6 +44,7 @@ export function PipelineWorkspace({ leads, initialLeadId }: PipelineWorkspacePro
   );
   const [formLead, setFormLead] = useState<Lead | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const { showToast } = useToast();
 
   const icps = useMemo(
     () => [...new Set(localLeads.map((lead) => lead.icp))].sort(),
@@ -275,6 +277,7 @@ export function PipelineWorkspace({ leads, initialLeadId }: PipelineWorkspacePro
               current.filter((lead) => lead.id !== selectedLead.id),
             );
             setSelectedLead(null);
+            showToast(`${selectedLead.company_name} deleted`);
           }}
         />
       )}
@@ -291,6 +294,7 @@ export function PipelineWorkspace({ leads, initialLeadId }: PipelineWorkspacePro
             });
             if (selectedLead?.id === savedLead.id) setSelectedLead(savedLead);
             setFormOpen(false);
+            showToast(formLead ? "Lead updated" : `${savedLead.company_name} added to the pipeline`);
           }}
         />
       )}

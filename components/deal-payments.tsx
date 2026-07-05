@@ -5,6 +5,7 @@ import {
   markPaymentPaidAction,
   markPaymentScheduledAction,
 } from "@/app/clients/actions";
+import { useToast } from "@/components/toast";
 import { formatDate, formatMoney } from "@/lib/client-format";
 import type { PaymentEvent } from "@/types/crm";
 
@@ -18,6 +19,7 @@ export function DealPayments({ payments }: { payments: PaymentEvent[] }) {
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const { showToast } = useToast();
 
   if (payments.length === 0) {
     return (
@@ -71,7 +73,15 @@ export function DealPayments({ payments }: { payments: PaymentEvent[] }) {
                           : markPaymentPaidAction;
                       const result = await action(payment.id);
                       setPendingId(null);
-                      if (result.error) setError(result.error);
+                      if (result.error) {
+                        setError(result.error);
+                        return;
+                      }
+                      showToast(
+                        payment.status === "paid"
+                          ? "Payment set back to scheduled"
+                          : `${formatMoney(payment.amount_cents, payment.currency)} marked as paid`,
+                      );
                     });
                   }}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/40 disabled:opacity-50 ${

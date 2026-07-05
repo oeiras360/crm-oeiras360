@@ -60,7 +60,9 @@ The public URL and anonymous key are safe to use in browser code when Row Level 
 
 `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. It is only read in `lib/supabase/server.ts`, which is protected by `server-only`. Never import that module into a Client Component or rename the variable with a `NEXT_PUBLIC_` prefix.
 
-The pipeline and CRM overview query the deployed `leads_import` table through Server Components. The current import contains the 249-row `Contacted` view; import the full `_all.csv` dataset to expose every funnel stage.
+Leads live in the first-class `public.leads` table (English snake_case columns, timestamps, activity log in `public.lead_activities`). `leads_import` is now a compatibility **view** over `leads` with the original Portuguese column names so external n8n workflows keep working unchanged. Its INSTEAD OF INSERT trigger dedups by `identity_key`, so writers must use plain inserts (PostgREST upsert / `ON CONFLICT` does not work on views).
+
+`tools/sync_notion_csv_to_supabase.py` is retired: it did a delete-all + reinsert, which now fails by design on won leads (the `client_deals.lead_id` foreign key restricts deletion). The CRM is the source of truth for leads. The pre-migration table is kept as `leads_import_backup` for rollback and can be dropped after a couple of weeks of clean n8n runs.
 
 Contact templates are Markdown files in the private `contact-templates` Storage bucket. They use YAML-style frontmatter (`title`, `channel`, `category`, `status`, and optional `subject`) followed by the message body. The server reads the bucket with the service-role client; the key is never sent to the browser.
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { deleteLeadAction, updateLeadFunnelAction } from "@/app/pipeline/actions";
+import { Drawer } from "@/components/drawer";
 import { ActivitySection, NextActionSection } from "@/components/lead-activity";
 import { CloseIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/status-badge";
@@ -39,35 +40,8 @@ export function LeadDetailsModal({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [onClose]);
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 p-0 backdrop-blur-[1px] sm:items-center sm:p-6"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="lead-dialog-title"
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-w-3xl sm:rounded-2xl"
-      >
+    <Drawer labelledBy="lead-dialog-title" onClose={onClose}>
         <header className="sticky top-0 z-10 flex items-start justify-between gap-5 border-b border-border bg-white/95 px-5 py-5 backdrop-blur sm:px-7">
           <div className="min-w-0">
             <div className="mb-2">
@@ -286,8 +260,7 @@ export function LeadDetailsModal({
             )}
           </section>
         </div>
-      </section>
-    </div>
+    </Drawer>
   );
 }
 
