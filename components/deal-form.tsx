@@ -46,7 +46,7 @@ export function DealForm({
             Commercial terms
           </p>
           <h2 className="mt-2 text-xl font-semibold">
-            {deal ? "Edit contract" : "Add another contract"}
+            {deal ? "Edit contract" : "New contract"}
           </h2>
         </div>
         <button
@@ -54,7 +54,7 @@ export function DealForm({
           disabled={pending}
           className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-wait disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save terms"}
+          {pending ? "Saving…" : deal ? "Save changes" : "Create contract"}
         </button>
       </div>
 

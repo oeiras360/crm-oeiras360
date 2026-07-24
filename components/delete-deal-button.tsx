@@ -1,12 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { deleteDealAction } from "@/app/clients/actions";
 
-export function DeleteDealButton({ dealId }: { dealId: string }) {
+export function DeleteDealButton({
+  dealId,
+  onDeleted,
+}: {
+  dealId: string;
+  onDeleted?: () => void;
+}) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   return (
     <div className="flex items-center gap-2">
@@ -33,7 +41,10 @@ export function DeleteDealButton({ dealId }: { dealId: string }) {
             if (result.error) {
               setError(result.error);
               setConfirming(false);
+              return;
             }
+            router.refresh();
+            onDeleted?.();
           });
         }}
         className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/40 disabled:opacity-60 ${

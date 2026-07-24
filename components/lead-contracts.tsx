@@ -4,15 +4,27 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLeadContractsAction } from "@/app/clients/actions";
 import { DealForm } from "@/components/deal-form";
 import { DealPayments } from "@/components/deal-payments";
+import { DeleteDealButton } from "@/components/delete-deal-button";
 import { cadenceLabel, formatDate, formatMoney } from "@/lib/client-format";
 import type { ClientAccount, PaymentEvent } from "@/types/crm";
 
-export function LeadContracts({ leadId }: { leadId: string }) {
-  const [account, setAccount] = useState<ClientAccount | null>(null);
-  const [payments, setPayments] = useState<PaymentEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+export function LeadContracts({
+  leadId,
+  initialAccount,
+  initialPayments = [],
+  display = "drawer",
+}: {
+  leadId: string;
+  initialAccount?: ClientAccount;
+  initialPayments?: PaymentEvent[];
+  display?: "drawer" | "page";
+}) {
+  const [account, setAccount] = useState<ClientAccount | null>(initialAccount ?? null);
+  const [payments, setPayments] = useState<PaymentEvent[]>(initialPayments);
+  const [loading, setLoading] = useState(!initialAccount);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [editingDealId, setEditingDealId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const result = await getLeadContractsAction(leadId);
@@ -28,6 +40,7 @@ export function LeadContracts({ leadId }: { leadId: string }) {
   }, [leadId]);
 
   useEffect(() => {
+    if (initialAccount) return;
     let ignore = false;
     getLeadContractsAction(leadId).then((result) => {
       if (ignore) return;
@@ -44,7 +57,7 @@ export function LeadContracts({ leadId }: { leadId: string }) {
     return () => {
       ignore = true;
     };
-  }, [leadId]);
+  }, [initialAccount, leadId]);
 
   const paymentsByDeal = useMemo(() => {
     const grouped = new Map<string, PaymentEvent[]>();
@@ -67,7 +80,14 @@ export function LeadContracts({ leadId }: { leadId: string }) {
   }
 
   return (
-    <section className="mt-8 border-t border-border pt-6" aria-labelledby="lead-contracts-title">
+    <section
+      className={
+        display === "page"
+          ? "rounded-2xl border border-border bg-surface p-6 shadow-sm"
+          : "mt-8 border-t border-border pt-6"
+      }
+      aria-labelledby="lead-contracts-title"
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3
@@ -77,15 +97,18 @@ export function LeadContracts({ leadId }: { leadId: string }) {
             Contracts
           </h3>
           <p className="mt-1 text-xs text-muted">
-            {account?.deals.length ?? 0} {(account?.deals.length ?? 0) === 1 ? "contract" : "contracts"} · each has its own payment plan
+            {account?.deals.length ?? 0} {(account?.deals.length ?? 0) === 1 ? "contract" : "contracts"} · every contract has separate terms and payments
           </p>
         </div>
         <button
           type="button"
-          onClick={() => setAdding((current) => !current)}
+          onClick={() => {
+            setEditingDealId(null);
+            setAdding((current) => !current);
+          }}
           className="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800"
         >
-          {adding ? "Cancel" : "Add contract"}
+          {adding ? "Cancel" : "+ Add new contract"}
         </button>
       </div>
 
@@ -113,15 +136,15 @@ export function LeadContracts({ leadId }: { leadId: string }) {
           onClick={() => setAdding(true)}
           className="mt-4 w-full rounded-xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted hover:border-emerald-400 hover:bg-emerald-50/40 hover:text-emerald-800"
         >
-          No contracts yet. Add the first contract and its payment schedule.
+          No contracts yet. Add a new contract and define its own payment schedule.
         </button>
       )}
 
       <div className="mt-4 space-y-3">
         {account?.deals.map((deal, index) => (
-          <details key={deal.id} className="group rounded-xl border border-border bg-white">
-            <summary className="cursor-pointer list-none px-4 py-4 marker:content-none">
-              <div className="flex items-start justify-between gap-4">
+          <article key={deal.id} className="rounded-xl border border-border bg-white">
+            <div className="px-4 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-emerald-700">Contract {index + 1}</p>
                   <p className="mt-1 truncate text-sm font-semibold">
@@ -138,25 +161,52 @@ export function LeadContracts({ leadId }: { leadId: string }) {
                   <p className="mt-1 text-xs text-muted">{cadenceLabel(deal.billing_cadence)}</p>
                 </div>
               </div>
-            </summary>
-            <div className="border-t border-border px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-600">
-                Payment plan
-              </p>
-              <DealPayments
-                payments={paymentsByDeal.get(deal.id) ?? []}
-                onChanged={() => void load()}
-              />
-              <details className="mt-4">
-                <summary className="cursor-pointer text-sm font-medium text-emerald-700">
-                  Edit contract terms
-                </summary>
-                <div className="mt-3">
-                  <DealForm client={account} deal={deal} onSaved={() => void load()} />
-                </div>
-              </details>
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdding(false);
+                    setEditingDealId((current) => current === deal.id ? null : deal.id);
+                  }}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  {editingDealId === deal.id ? "Cancel editing" : "Edit contract"}
+                </button>
+                <DeleteDealButton
+                  dealId={deal.id}
+                  onDeleted={() => {
+                    setEditingDealId(null);
+                    void load();
+                  }}
+                />
+              </div>
             </div>
-          </details>
+
+            {editingDealId === deal.id && (
+              <div className="border-t border-border p-4">
+                <DealForm
+                  client={account}
+                  deal={deal}
+                  onSaved={() => {
+                    setEditingDealId(null);
+                    void load();
+                  }}
+                />
+              </div>
+            )}
+
+            <details className="border-t border-border">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-emerald-700">
+                View payment plan ({paymentsByDeal.get(deal.id)?.length ?? 0})
+              </summary>
+              <div className="px-4 pb-4">
+                <DealPayments
+                  payments={paymentsByDeal.get(deal.id) ?? []}
+                  onChanged={() => void load()}
+                />
+              </div>
+            </details>
+          </article>
         ))}
       </div>
     </section>
