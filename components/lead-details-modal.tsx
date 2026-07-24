@@ -5,6 +5,7 @@ import { deleteLeadAction, updateLeadFunnelAction } from "@/app/pipeline/actions
 import { Drawer } from "@/components/drawer";
 import { ActivitySection, NextActionSection } from "@/components/lead-activity";
 import { CloseIcon } from "@/components/icons";
+import { LeadContracts } from "@/components/lead-contracts";
 import { StatusBadge } from "@/components/status-badge";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
@@ -161,6 +162,8 @@ export function LeadDetailsModal({
             </dl>
           </section>
 
+          <LeadContracts leadId={lead.id} />
+
           <NextActionSection lead={lead} onLeadUpdated={onLeadUpdated} />
 
           <ActivitySection lead={lead} />
@@ -179,6 +182,7 @@ export function LeadDetailsModal({
               <Detail label="E-mail">
                 {lead.email ? <ContactLink href={`mailto:${lead.email}`}>{lead.email}</ContactLink> : "—"}
               </Detail>
+              <Detail label="2nd Email">{lead.second_email ? "Yes" : "No"}</Detail>
               <Detail label="Telefone">
                 {lead.phone ? <ContactLink href={`tel:${lead.phone}`}>{lead.phone}</ContactLink> : "—"}
               </Detail>

@@ -8,6 +8,7 @@ create table if not exists public.leads (
   -- "Cargo" is present in Notion but empty in every exported row.
   job_title text,
   email text,
+  second_email boolean not null default false,
   phone text,
   website text,
   linkedin_url text,

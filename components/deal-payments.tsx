@@ -15,7 +15,13 @@ const statusStyles: Record<PaymentEvent["status"], string> = {
   overdue: "bg-red-50 text-red-700",
 };
 
-export function DealPayments({ payments }: { payments: PaymentEvent[] }) {
+export function DealPayments({
+  payments,
+  onChanged,
+}: {
+  payments: PaymentEvent[];
+  onChanged?: () => void;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -82,6 +88,7 @@ export function DealPayments({ payments }: { payments: PaymentEvent[] }) {
                           ? "Payment set back to scheduled"
                           : `${formatMoney(payment.amount_cents, payment.currency)} marked as paid`,
                       );
+                      onChanged?.();
                     });
                   }}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/40 disabled:opacity-50 ${

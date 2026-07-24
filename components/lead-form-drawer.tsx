@@ -70,6 +70,12 @@ export function LeadFormDrawer({
                 <Field label="E-mail">
                   <TextInput name="email" type="email" defaultValue={lead?.email ?? ""} />
                 </Field>
+                <CheckboxField
+                  label="2nd Email"
+                  description="Mark when this lead has a second email available."
+                  name="second_email"
+                  defaultChecked={lead?.second_email ?? false}
+                />
                 <Field label="Telefone">
                   <TextInput name="phone" type="tel" defaultValue={lead?.phone ?? ""} />
                 </Field>
@@ -211,5 +217,28 @@ function SelectInput({
         ▾
       </span>
     </div>
+  );
+}
+
+function CheckboxField({
+  label,
+  description,
+  ...props
+}: {
+  label: string;
+  description: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <label className="flex min-h-10 items-start gap-3 rounded-lg border border-border bg-white px-3 py-2.5">
+      <input
+        {...props}
+        type="checkbox"
+        className="mt-0.5 size-4 rounded border-border text-emerald-700 focus:ring-2 focus:ring-emerald-700/20"
+      />
+      <span>
+        <span className="block text-xs font-medium text-neutral-700">{label}</span>
+        <span className="mt-0.5 block text-xs text-muted">{description}</span>
+      </span>
+    </label>
   );
 }

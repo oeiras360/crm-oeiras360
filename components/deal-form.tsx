@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { saveClientDeal } from "@/app/clients/actions";
 import type { ClientAccount, ClientDeal } from "@/types/crm";
 
@@ -10,15 +11,35 @@ const inputClass =
 export function DealForm({
   client,
   deal,
+  onSaved,
 }: {
   client: ClientAccount;
   deal?: ClientDeal;
+  onSaved?: () => void;
 }) {
   const boundAction = saveClientDeal.bind(null, client.id, deal?.id ?? null);
-  const [state, action, pending] = useActionState(boundAction, { error: null });
+  const [state, action, pending] = useActionState(boundAction, {
+    error: null,
+    savedDealId: null,
+    savedAt: null,
+  });
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const onSavedRef = useRef(onSaved);
+
+  useEffect(() => {
+    onSavedRef.current = onSaved;
+  }, [onSaved]);
+
+  useEffect(() => {
+    if (!state.savedAt) return;
+    if (!deal) formRef.current?.reset();
+    router.refresh();
+    onSavedRef.current?.();
+  }, [deal, router, state.savedAt]);
 
   return (
-    <form action={action} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <form ref={formRef} action={action} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">

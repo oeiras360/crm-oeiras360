@@ -40,6 +40,7 @@ export interface Lead {
   contact_name: string;
   job_title: string | null;
   email: string | null;
+  second_email: boolean;
   phone: string | null;
   website: string | null;
   linkedin_url: string | null;

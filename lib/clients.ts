@@ -122,18 +122,40 @@ export async function getWonClients(): Promise<Result<ClientAccount[]>> {
 }
 
 export async function getPaymentEvents(): Promise<Result<PaymentEvent[]>> {
-  const clients = await getWonClients();
-  const configuredDeals = clients.data.flatMap((client) => client.deals);
-  if (configuredDeals.length === 0) return { data: [], warning: clients.warning };
+  const admin = getSupabaseAdminClient();
+  const { data: deals, error: dealsError } = await admin
+    .from("client_deals")
+    .select("*");
+  if (dealsError) return { data: [], warning: dealsError.message };
 
-  const { data, error } = await getSupabaseAdminClient()
+  const configuredDeals = (deals ?? []) as DealRow[];
+  if (configuredDeals.length === 0) return { data: [], warning: null };
+
+  const leadIds = [...new Set(configuredDeals.map((deal) => deal.lead_id))];
+  const [{ data: leads, error: leadsError }, { data, error }] = await Promise.all([
+    admin.from("leads").select("id, company_name").in("id", leadIds),
+    admin
     .from("payment_events")
     .select("*")
     .in("client_deal_id", configuredDeals.map((deal) => deal.id))
-    .order("due_date");
+    .order("due_date"),
+  ]);
 
-  if (error) return { data: [], warning: error.message };
-  const clientNames = new Map(configuredDeals.map((deal) => [deal.id, deal.company_name]));
+  if (leadsError || error) {
+    return { data: [], warning: leadsError?.message ?? error?.message ?? "Could not load payments." };
+  }
+  const leadNames = new Map(
+    ((leads ?? []) as Array<{ id: string; company_name: string }>).map((lead) => [
+      lead.id,
+      lead.company_name,
+    ]),
+  );
+  const dealNames = new Map(
+    configuredDeals.map((deal) => [
+      deal.id,
+      leadNames.get(deal.lead_id) ?? "Account",
+    ]),
+  );
 
   const today = todayISO();
   return {
@@ -145,9 +167,9 @@ export async function getPaymentEvents(): Promise<Result<PaymentEvent[]>> {
         event.status === "scheduled" && event.due_date < today
           ? ("overdue" as PaymentStatus)
           : event.status,
-      company_name: clientNames.get(event.client_deal_id) ?? "Client",
+      company_name: dealNames.get(event.client_deal_id) ?? "Account",
     })),
-    warning: clients.warning,
+    warning: null,
   };
 }
 

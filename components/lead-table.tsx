@@ -44,7 +44,7 @@ export function LeadTable({
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1240px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[1320px] border-collapse text-left text-sm">
           <thead className="border-b border-border bg-neutral-50/80 text-xs font-medium uppercase tracking-wide text-muted">
             <tr>
               <th className="px-5 py-3.5">Company & contact</th>
@@ -54,6 +54,7 @@ export function LeadTable({
               <th className="px-4 py-3.5">ICP</th>
               <th className="px-4 py-3.5">Location</th>
               <th className="px-4 py-3.5 text-center">Score</th>
+              <th className="px-4 py-3.5 text-center">2nd Email</th>
               <th className="px-5 py-3.5">Channel</th>
               <th className="px-5 py-3.5 text-right">Details</th>
             </tr>
@@ -140,6 +141,17 @@ export function LeadTable({
                   </td>
                   <td className="px-4 py-4 text-center font-mono text-xs font-semibold">
                     {lead.lead_score?.toLocaleString("pt-PT") ?? "—"}
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <span
+                      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${
+                        lead.second_email
+                          ? "bg-emerald-50 text-emerald-800"
+                          : "bg-neutral-100 text-neutral-500"
+                      }`}
+                    >
+                      {lead.second_email ? "Yes" : "No"}
+                    </span>
                   </td>
                   <td className="px-5 py-4 text-neutral-600">{lead.preferred_channel ?? "—"}</td>
                   <td className="px-5 py-4 text-right">

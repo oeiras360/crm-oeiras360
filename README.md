@@ -78,6 +78,7 @@ The full Notion export is the CSV whose name ends in `_all.csv` (363 rows). The 
 | Nome | `contact_name` | `text`, required |
 | Cargo | `job_title` | `text`; present but empty in the export |
 | E-mail | `email` | `text` |
+| 2nd Email | `second_email` | `boolean`; default false |
 | Telefone | `phone` | `text` to preserve formatting and multiple numbers |
 | Site | `website` | `text` |
 | LinkedIn | `linkedin_url` | `text` |
