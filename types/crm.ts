@@ -1,4 +1,5 @@
 export const FUNNEL_STAGES = [
+  "Enrichment",
   "Lead",
   "Contacted",
   "Engaged",

@@ -18,6 +18,7 @@ create table if not exists public.leads (
     constraint leads_funnel_stage_check
     check (
       funnel_stage in (
+        'Enrichment',
         'Lead',
         'Contacted',
         'Engaged',

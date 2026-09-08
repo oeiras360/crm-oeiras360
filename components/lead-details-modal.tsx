@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { FUNNEL_STAGES, type FunnelStage, type Lead } from "@/types/crm";
 
 const funnelControlStyles: Record<FunnelStage, string> = {
+  Enrichment: "border-cyan-200 bg-cyan-50/70 text-cyan-800 hover:border-cyan-400",
   Lead: "border-blue-200 bg-blue-50/70 text-blue-800 hover:border-blue-400",
   Contacted: "border-amber-200 bg-amber-50/70 text-amber-900 hover:border-amber-400",
   Engaged: "border-violet-200 bg-violet-50/70 text-violet-800 hover:border-violet-400",

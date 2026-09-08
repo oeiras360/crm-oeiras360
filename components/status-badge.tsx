@@ -1,6 +1,7 @@
 import type { FunnelStage } from "@/types/crm";
 
 const styles: Record<FunnelStage, string> = {
+  Enrichment: "bg-cyan-50 text-cyan-700 ring-cyan-600/20",
   Lead: "bg-blue-50 text-blue-700 ring-blue-600/20",
   Contacted: "bg-amber-50 text-amber-800 ring-amber-600/20",
   Engaged: "bg-violet-50 text-violet-700 ring-violet-600/20",

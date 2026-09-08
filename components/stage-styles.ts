@@ -4,6 +4,12 @@ export const stageStyles: Record<
   FunnelStage,
   { dot: string; active: string; hover: string; column: string }
 > = {
+  Enrichment: {
+    dot: "bg-cyan-500",
+    active: "border-cyan-300 bg-cyan-50 text-cyan-950 ring-cyan-500/15",
+    hover: "hover:border-cyan-200 hover:bg-cyan-50/70",
+    column: "border-cyan-200 bg-cyan-50/40",
+  },
   Lead: {
     dot: "bg-blue-500",
     active: "border-blue-300 bg-blue-50 text-blue-950 ring-blue-500/15",

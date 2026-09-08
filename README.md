@@ -92,6 +92,6 @@ The full Notion export is the CSV whose name ends in `_all.csv` (363 rows). The 
 | Último contato | `last_contacted_at` | `date` |
 | Canal | `preferred_channel` | `Email`, `Telefone`, or null |
 
-The real funnel stages are `Lead`, `Contacted`, `Engaged`, `Negotiation`, `Closed - Won`, `Closed - On Hold`, and `Closed - Lost`. `Tags` includes secondary labels such as `Novo lead`, `Alta prioridade`, and `Acompanhamento`; it is not treated as another pipeline.
+The real funnel stages are `Enrichment`, `Lead`, `Contacted`, `Engaged`, `Negotiation`, `Closed - Won`, `Closed - On Hold`, and `Closed - Lost`. `Enrichment` sits before `Lead` and holds leads that are still missing the contact data needed to work them — chiefly an email address — so they stay out of the active pipeline counts and out of the follow-up reminders until enriched. `Tags` includes secondary labels such as `Novo lead`, `Alta prioridade`, and `Acompanhamento`; it is not treated as another pipeline.
 
 The export does not include a next-follow-up date or Notion creation/update timestamps. Supabase generates `created_at` and `updated_at`, while the UI derives a suggested next action from the funnel stage and last-contact date.

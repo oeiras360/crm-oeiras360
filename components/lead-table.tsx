@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/status-badge";
 import type { Lead } from "@/types/crm";
 
 const actionByStage = {
+  Enrichment: { label: "Find contact details", style: "text-cyan-700 bg-cyan-50" },
   Lead: { label: "Contact lead", style: "text-blue-700 bg-blue-50" },
   Contacted: { label: "Follow up", style: "text-amber-800 bg-amber-50" },
   Engaged: { label: "Qualify interest", style: "text-violet-700 bg-violet-50" },

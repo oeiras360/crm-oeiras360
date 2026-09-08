@@ -11,6 +11,8 @@ export interface RecentActivity extends LeadActivity {
   company_name: string;
 }
 
+// Stages worth nudging about. "Enrichment" is deliberately absent: those leads are
+// missing contact data, so a follow-up reminder on them is noise, not a task.
 const ACTIVE_STAGES = ["Lead", "Contacted", "Engaged", "Negotiation"];
 
 function todayISO() {

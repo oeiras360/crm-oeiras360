@@ -52,7 +52,8 @@ export default async function CrmPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   const activeLeads = leads.filter(
-    (lead) => !lead.funnel_stage.startsWith("Closed"),
+    (lead) =>
+      lead.funnel_stage !== "Enrichment" && !lead.funnel_stage.startsWith("Closed"),
   ).length;
   const negotiations = leads.filter(
     (lead) => lead.funnel_stage === "Negotiation",
