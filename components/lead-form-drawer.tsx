@@ -72,9 +72,9 @@ export function LeadFormDrawer({
                 </Field>
                 <CheckboxField
                   label="2nd Email"
-                  description="Mark when this lead has a second email available."
-                  name="second_email"
-                  defaultChecked={lead?.second_email ?? false}
+                  description="Mark when the second (follow-up) email has been sent."
+                  name="second_email_sent"
+                  defaultChecked={lead?.second_email_sent ?? false}
                 />
                 <Field label="Telefone">
                   <TextInput name="phone" type="tel" defaultValue={lead?.phone ?? ""} />

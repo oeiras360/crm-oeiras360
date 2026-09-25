@@ -66,7 +66,7 @@ export async function saveLeadAction(
   const leadScore = scoreRaw ? Number(scoreRaw) : null;
   const channel = text("preferred_channel");
   const lastContacted = text("last_contacted_at");
-  const secondEmail = formData.get("second_email") === "on";
+  const secondEmail = formData.get("second_email_sent") === "on";
   const tags = text("tags")
     .split(",")
     .map((tag) => tag.trim())
@@ -90,7 +90,7 @@ export async function saveLeadAction(
     contact_name: contactName,
     job_title: optional("job_title"),
     email: optional("email"),
-    second_email: secondEmail,
+    second_email_sent: secondEmail,
     phone: optional("phone"),
     website: optional("website"),
     linkedin_url: optional("linkedin_url"),

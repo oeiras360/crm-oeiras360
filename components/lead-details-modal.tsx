@@ -183,7 +183,7 @@ export function LeadDetailsModal({
               <Detail label="E-mail">
                 {lead.email ? <ContactLink href={`mailto:${lead.email}`}>{lead.email}</ContactLink> : "—"}
               </Detail>
-              <Detail label="2nd Email">{lead.second_email ? "Yes" : "No"}</Detail>
+              <Detail label="2nd Email">{lead.second_email_sent ? "Yes" : "No"}</Detail>
               <Detail label="Telefone">
                 {lead.phone ? <ContactLink href={`tel:${lead.phone}`}>{lead.phone}</ContactLink> : "—"}
               </Detail>

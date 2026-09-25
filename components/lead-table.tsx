@@ -146,12 +146,12 @@ export function LeadTable({
                   <td className="px-4 py-4 text-center">
                     <span
                       className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ${
-                        lead.second_email
+                        lead.second_email_sent
                           ? "bg-emerald-50 text-emerald-800"
                           : "bg-neutral-100 text-neutral-500"
                       }`}
                     >
-                      {lead.second_email ? "Yes" : "No"}
+                      {lead.second_email_sent ? "Yes" : "No"}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-neutral-600">{lead.preferred_channel ?? "—"}</td>
