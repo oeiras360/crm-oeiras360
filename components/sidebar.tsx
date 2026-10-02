@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  AgenciesIcon,
   BattlesheetIcon,
   CalendarIcon,
   ClientsIcon,
@@ -21,6 +22,7 @@ const groups = [
     items: [
       { href: "/crm", label: "CRM", icon: CrmIcon },
       { href: "/pipeline", label: "Pipeline", icon: PipelineIcon },
+      { href: "/agencias", label: "Agências", icon: AgenciesIcon },
       { href: "/templates", label: "Contact Templates", icon: TemplatesIcon },
       { href: "/battlesheet", label: "Sales Battlesheet", icon: BattlesheetIcon },
     ],

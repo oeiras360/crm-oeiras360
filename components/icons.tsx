@@ -118,3 +118,12 @@ export function FinanceIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function AgenciesIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path d="M4 20V6l6-2v16M10 9h8a2 2 0 0 1 2 2v9" />
+      <path d="M3 20h18M14 13h2M14 16h2M6 9h1M6 12h1M6 15h1" />
+    </svg>
+  );
+}

@@ -1,4 +1,4 @@
-import type { FunnelStage } from "@/types/crm";
+import type { AgencyStage, FunnelStage } from "@/types/crm";
 
 export const stageStyles: Record<
   FunnelStage,
@@ -51,5 +51,59 @@ export const stageStyles: Record<
     active: "border-red-300 bg-red-50 text-red-950 ring-red-500/15",
     hover: "hover:border-red-200 hover:bg-red-50/70",
     column: "border-red-200 bg-red-50/40",
+  },
+};
+
+export const agencyStageStyles: Record<
+  AgencyStage,
+  { dot: string; active: string; hover: string; column: string; badge: string; control: string }
+> = {
+  lead: {
+    dot: "bg-blue-500",
+    active: "border-blue-300 bg-blue-50 text-blue-950 ring-blue-500/15",
+    hover: "hover:border-blue-200 hover:bg-blue-50/70",
+    column: "border-blue-200 bg-blue-50/40",
+    badge: "bg-blue-50 text-blue-700 ring-blue-600/20",
+    control: "border-blue-200 bg-blue-50/70 text-blue-800 hover:border-blue-400",
+  },
+  contactado: {
+    dot: "bg-amber-500",
+    active: "border-amber-300 bg-amber-50 text-amber-950 ring-amber-500/15",
+    hover: "hover:border-amber-200 hover:bg-amber-50/70",
+    column: "border-amber-200 bg-amber-50/40",
+    badge: "bg-amber-50 text-amber-800 ring-amber-600/20",
+    control: "border-amber-200 bg-amber-50/70 text-amber-900 hover:border-amber-400",
+  },
+  engagemento: {
+    dot: "bg-violet-500",
+    active: "border-violet-300 bg-violet-50 text-violet-950 ring-violet-500/15",
+    hover: "hover:border-violet-200 hover:bg-violet-50/70",
+    column: "border-violet-200 bg-violet-50/40",
+    badge: "bg-violet-50 text-violet-700 ring-violet-600/20",
+    control: "border-violet-200 bg-violet-50/70 text-violet-800 hover:border-violet-400",
+  },
+  reuniao: {
+    dot: "bg-fuchsia-500",
+    active: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-950 ring-fuchsia-500/15",
+    hover: "hover:border-fuchsia-200 hover:bg-fuchsia-50/70",
+    column: "border-fuchsia-200 bg-fuchsia-50/40",
+    badge: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/20",
+    control: "border-fuchsia-200 bg-fuchsia-50/70 text-fuchsia-800 hover:border-fuchsia-400",
+  },
+  acordo: {
+    dot: "bg-emerald-600",
+    active: "border-emerald-300 bg-emerald-50 text-emerald-950 ring-emerald-500/15",
+    hover: "hover:border-emerald-200 hover:bg-emerald-50/70",
+    column: "border-emerald-200 bg-emerald-50/40",
+    badge: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    control: "border-emerald-200 bg-emerald-50/70 text-emerald-800 hover:border-emerald-400",
+  },
+  perdido: {
+    dot: "bg-red-500",
+    active: "border-red-300 bg-red-50 text-red-950 ring-red-500/15",
+    hover: "hover:border-red-200 hover:bg-red-50/70",
+    column: "border-red-200 bg-red-50/40",
+    badge: "bg-red-50 text-red-700 ring-red-600/20",
+    control: "border-red-200 bg-red-50/70 text-red-800 hover:border-red-400",
   },
 };

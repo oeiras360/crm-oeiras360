@@ -133,3 +133,53 @@ export interface PaymentEvent {
   status: PaymentStatus;
   label: string;
 }
+
+export const AGENCY_STAGES = [
+  "lead",
+  "contactado",
+  "engagemento",
+  "reuniao",
+  "acordo",
+  "perdido",
+] as const;
+
+export type AgencyStage = (typeof AGENCY_STAGES)[number];
+
+export const AGENCY_STAGE_LABELS: Record<AgencyStage, string> = {
+  lead: "Lead",
+  contactado: "Contactado",
+  engagemento: "Engagement",
+  reuniao: "Reunião",
+  acordo: "Acordo",
+  perdido: "Perdido",
+};
+
+export interface Agency {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  job_title: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  linkedin_url: string | null;
+  source: string | null;
+  funnel_stage: AgencyStage;
+  notes: string | null;
+  tags: string[];
+  last_contacted_at: string | null;
+  next_action_at: string | null;
+  next_action_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgencyActivity {
+  id: string;
+  agency_id: string;
+  type: ActivityType;
+  body: string | null;
+  metadata: Record<string, string>;
+  occurred_at: string;
+  created_at: string;
+}
