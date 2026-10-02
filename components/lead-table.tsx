@@ -62,7 +62,11 @@ export function LeadTable({
           </thead>
           <tbody className="divide-y divide-border">
             {leads.map((lead) => {
-              const action = actionByStage[lead.funnel_stage];
+              // Fallback guards against stage values written outside the app (e.g. "Closed-Lost").
+              const action = actionByStage[lead.funnel_stage] ?? {
+                label: lead.funnel_stage,
+                style: "text-neutral-600 bg-neutral-100",
+              };
               return (
                 <tr
                   key={lead.id}
